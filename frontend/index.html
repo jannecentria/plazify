@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plazify — Shopping Center Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LOGIN SCREEN (shown when not logged in for admin) -->
+<div id="login-screen" style="display:none">
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">Plazi<span>fy</span></div>
+      <div class="login-tagline" data-i18n="login.tagline"></div>
+      <div class="login-title" data-i18n="login.title"></div>
+      <div class="login-error" id="login-error" data-i18n="login.error"></div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="login.username"></label>
+        <input class="form-input" type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="login.password"></label>
+        <input class="form-input" type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="login-btn" onclick="doLogin()" data-i18n="login.btn"></button>
+      <button class="btn-secondary" style="width:100%;margin-top:0.75rem;text-align:center" onclick="cancelLogin()" data-i18n="login.cancel"></button>
+      <div class="login-hint">
+        <div class="login-hint-title" data-i18n="login.demoTitle"></div>
+        <div id="login-hint-rows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+<nav class="nav">
+  <div class="nav-brand">Plazi<span>fy</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-discover" onclick="showView('discover')" data-i18n="nav.discover"></button>
+    <button class="nav-tab" id="tab-feed" onclick="showView('feed')" data-i18n="nav.feed"></button>
+    <button class="nav-tab" id="tab-admin" onclick="requireLogin()" data-i18n="nav.admin"></button>
+  </div>
+  <div class="nav-actions">
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="lang-fi" onclick="setLang('fi')">FI</button>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="lang-sv" onclick="setLang('sv')">SV</button>
+    </div>
+    <div id="nav-auth"></div>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">Menu</button>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobile-nav" style="display:none">
+  <button onclick="showView('discover');toggleMobileMenu()" data-i18n="nav.discover"></button>
+  <button onclick="showView('feed');toggleMobileMenu()" data-i18n="nav.feed"></button>
+  <button id="mobile-tab-admin" onclick="requireLogin();toggleMobileMenu()" data-i18n="nav.admin"></button>
+</div>
+
+<!-- DISCOVER -->
+<div class="view active" id="view-discover">
+  <div class="page-wrap">
+    <div class="hero">
+      <div class="hero-eyebrow" data-i18n="hero.eyebrow"></div>
+      <h1 class="hero-title" data-i18n-html="hero.title"></h1>
+      <p class="hero-sub" data-i18n="hero.sub"></p>
+      <div class="search-bar">
+        <input type="text" id="search-input" data-i18n-placeholder="hero.searchPlaceholder" oninput="renderCenters()">
+        <button onclick="renderCenters()" data-i18n="hero.searchBtn"></button>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="hero-stat-num" id="stat-centers">0</span><span class="hero-stat-label" data-i18n="hero.statCenters"></span></div>
+        <div class="hero-stat"><span class="hero-stat-num" id="stat-posts">0</span><span class="hero-stat-label" data-i18n="hero.statPosts"></span></div>
+        <div class="hero-stat"><span class="hero-stat-num" id="stat-cities">0</span><span class="hero-stat-label" data-i18n="hero.statCities"></span></div>
+      </div>
+    </div>
+    <div class="filters" id="type-filters">
+      <button class="pill active" onclick="setFilter('all',this)" data-i18n="filter.all"></button>
+      <button class="pill" id="filter-favorites" onclick="setFilter('favorites',this)" data-i18n="filter.favorites"></button>
+      <button class="pill" onclick="setFilter('mall',this)" data-i18n="filter.mall"></button>
+      <button class="pill" onclick="setFilter('outlet',this)" data-i18n="filter.outlet"></button>
+    </div>
+    <div class="section-head"><div class="section-label" data-i18n="discover.sectionLabel"></div></div>
+    <div class="grid-centers" id="centers-grid"></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="view" id="view-detail">
+  <div class="page-wrap">
+    <button class="detail-back" onclick="showView('discover')" data-i18n="detail.back"></button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<!-- FEED -->
+<div class="view" id="view-feed">
+  <div class="page-wrap">
+    <div style="margin-bottom:2rem">
+      <h2 class="serif" style="font-size:1.9rem;font-weight:700;margin-bottom:0.3rem" data-i18n="feed.title"></h2>
+      <p style="color:var(--muted);font-size:0.9rem" data-i18n="feed.subtitle"></p>
+    </div>
+    <div class="filters" id="feed-filters">
+      <button class="pill active" onclick="setFeedFilter('all',this)" data-i18n="filter.all"></button>
+      <button class="pill" onclick="setFeedFilter('sale',this)" data-i18n="feed.filterSale"></button>
+      <button class="pill" onclick="setFeedFilter('event',this)" data-i18n="feed.filterEvent"></button>
+      <button class="pill" onclick="setFeedFilter('news',this)" data-i18n="feed.filterNews"></button>
+    </div>
+    <div id="feed-list"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="view" id="view-admin">
+  <div class="page-wrap">
+    <div style="margin-bottom:1.75rem">
+      <h2 class="serif" style="font-size:1.9rem;font-weight:700;margin-bottom:0.3rem" data-i18n="admin.title"></h2>
+      <p style="color:var(--muted);font-size:0.9rem" data-i18n="admin.subtitle"></p>
+    </div>
+    <div class="admin-layout">
+      <aside class="sidebar">
+        <div id="sidebar-user-card"></div>
+
+        <div class="sidebar-section-label" data-i18n="admin.sidebarCenters"></div>
+        <button class="sidebar-item active" id="sb-centers" onclick="switchAdmin('centers')">
+          <span data-i18n="admin.myCenters"></span>
+        </button>
+        <button class="sidebar-item" id="sb-add-center" onclick="switchAdmin('add-center')">
+          <span data-i18n="admin.addCenter"></span>
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label" data-i18n="admin.sidebarContent"></div>
+        <button class="sidebar-item" id="sb-posts" onclick="switchAdmin('posts')">
+          <span data-i18n="admin.allPosts"></span>
+        </button>
+        <button class="sidebar-item" id="sb-add-post" onclick="switchAdmin('add-post')">
+          <span data-i18n="admin.newPost"></span>
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label" data-i18n="admin.storesTitle"></div>
+        <button class="sidebar-item" id="sb-stores" onclick="switchAdmin('stores')">
+          <span data-i18n="admin.storesTitle"></span>
+        </button>
+        <button class="sidebar-item" id="sb-add-store" onclick="switchAdmin('add-store')">
+          <span data-i18n="admin.addStore"></span>
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label" data-i18n="stores.tabDining"></div>
+        <button class="sidebar-item" id="sb-dining" onclick="switchAdmin('dining')">
+          <span data-i18n="stores.tabDining"></span>
+        </button>
+        <button class="sidebar-item" id="sb-add-dining" onclick="switchAdmin('add-dining')">
+          <span data-i18n="admin.addDining"></span>
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label" data-i18n="stores.tabServices"></div>
+        <button class="sidebar-item" id="sb-services" onclick="switchAdmin('services')">
+          <span data-i18n="stores.tabServices"></span>
+        </button>
+        <button class="sidebar-item" id="sb-add-service" onclick="switchAdmin('add-service')">
+          <span data-i18n="admin.addServiceEntry"></span>
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label" data-i18n="admin.sidebarSettings"></div>
+        <button class="sidebar-item" id="sb-settings" onclick="switchAdmin('settings')">
+          <span data-i18n="admin.settings"></span>
+        </button>
+
+        <div id="sb-manage-users-wrap" style="display:none">
+          <div class="sidebar-divider"></div>
+          <div class="sidebar-section-label" data-i18n="admin.sidebarUsers"></div>
+          <button class="sidebar-item" id="sb-users" onclick="switchAdmin('users')">
+            <span data-i18n="admin.manageUsers"></span>
+          </button>
+        </div>
+      </aside>
+
+      <main id="admin-content"></main>
+    </div>
+  </div>
+</div>
+</div><!-- #app -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <p id="modal-msg"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary btn-sm" id="modal-cancel-btn" onclick="closeModal()"></button>
+      <button class="btn-primary btn-sm" id="modal-confirm-btn" style="background:var(--red)"></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="translations.js"></script>
+<script src="script.js" defer></script>
+</body>
+</html>
