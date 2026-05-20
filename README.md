@@ -60,7 +60,7 @@ Use these demo accounts:
 
 ### Admin Features
 
-- **Centers Management**: Add and edit shopping centers with details, opening hours, and banner images
+- **Centers Management**: Add and edit shopping centers with details, opening hours and banner images
 - **Content Management**: Create posts for sales, events, and news
 - **Store Directory**: Manage stores, restaurants/cafes, and services
 - **Image Uploads**: Add images for centers, stores, restaurants, and services
